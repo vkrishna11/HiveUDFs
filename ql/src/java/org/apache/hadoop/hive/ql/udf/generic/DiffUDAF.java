@@ -1,23 +1,5 @@
 package org.apache.hadoop.hive.ql.udf.generic;
 
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -89,11 +71,7 @@ public class DiffUDAF extends DiffUDAFAbstract {
         ArrayList<Object> listOfValues;
         ArrayList<Object> listisSame;
         ArrayList<Boolean> isSame;
-
-
         boolean isFirstValue;
-
-
         int parmIndex;
 
 
@@ -103,7 +81,6 @@ public class DiffUDAF extends DiffUDAFAbstract {
             isSame = new ArrayList<>();
             listOfValues = new ArrayList<>();
             listisSame = new ArrayList<>();
-
             this.isFirstValue = true;
             parmIndex = 0;
         }
@@ -111,24 +88,26 @@ public class DiffUDAF extends DiffUDAFAbstract {
 
         public void addRow(Object currValue, int parm_Number, boolean isSameAsPrevious, ObjectInspector inputObject) {
 
-
+            // isSameAsPrevous - identifies if the current value is similar to previous value
             if (isSameAsPrevious) {
-
                 if (parm_Number == 0) {
                     values.remove(parm_Number);
                     isSame.remove(parm_Number);
-                    // listOfValues.set(parm_Number, values);
-                    //listisSame.set(parm_Number, isSame);
                 } else {
 
                     ArrayList<Object> tempVal = (ArrayList<Object>) listOfValues.get(parm_Number);
-                    tempVal.set(0, null);
+                   if(!tempVal.isEmpty()) {
+                       // tempVal.set(0, null);
+                       tempVal.remove(0);
+                   }
                     ArrayList<Object> tempSame = (ArrayList<Object>) listisSame.get(parm_Number);
-                    tempSame.set(0, false);
+                   if(!tempSame.isEmpty()) {
+                       // tempSame.set(0, false);
+                       tempSame.remove(0);
+                   }
                 }
-
-
             }
+
             String tempString;
             Text currText;
             ArrayList<Object> resList;
@@ -250,8 +229,7 @@ public class DiffUDAF extends DiffUDAFAbstract {
                                 res = ((ArrayList<Object>) lb.listOfValues.get(i)).get(0);
                             } else {
 
-                                // resList.add(((ArrayList<Object>) lb.listOfValues.get(i)).get(0));
-                                // ObjOI = super.getInputOI();
+
                                 if (ObjOI[0].getCategory() == ObjectInspector.Category.LIST) {
                                     ArrayList<Object> resList = new ArrayList<>();
                                     resList.add(0, ((ArrayList<Object>) lb.listOfValues.get(i)).get(0));
