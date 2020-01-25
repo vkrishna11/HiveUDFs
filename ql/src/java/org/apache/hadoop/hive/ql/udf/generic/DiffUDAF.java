@@ -69,7 +69,7 @@ public class DiffUDAF extends DiffUDAFAbstract {
     static class DiffBuffer implements IDiffBuffer {
         ArrayList<Object> values;
         ArrayList<Object> listOfValues;
-        ArrayList<Object> listisSame;
+        ArrayList<Object> listOfBooleans;
         ArrayList<Boolean> isSame;
         boolean isFirstValue;
         int parmIndex;
@@ -80,7 +80,7 @@ public class DiffUDAF extends DiffUDAFAbstract {
             values = new ArrayList<Object>();
             isSame = new ArrayList<>();
             listOfValues = new ArrayList<>();
-            listisSame = new ArrayList<>();
+            listOfBooleans = new ArrayList<>();
             this.isFirstValue = true;
             parmIndex = 0;
         }
@@ -88,24 +88,28 @@ public class DiffUDAF extends DiffUDAFAbstract {
 
         public void addRow(Object currValue, int parm_Number, boolean isSameAsPrevious, ObjectInspector inputObject) {
 
+
             // isSameAsPrevous - identifies if the current value is similar to previous value
+            // if yes, then remove the previous element, which has "isSame" set to FALSE
+            // in the subsequent lines, the current element with "isSame" set to TRUE will be added to ArrayList
+
             if (isSameAsPrevious) {
-                if (parm_Number == 0) {
+                /*if (inputObject.getCategory() == ObjectInspector.Category.LIST) {
                     values.remove(parm_Number);
                     isSame.remove(parm_Number);
-                } else {
+                } else {*/
 
                     ArrayList<Object> tempVal = (ArrayList<Object>) listOfValues.get(parm_Number);
-                   if(!tempVal.isEmpty()) {
-                       // tempVal.set(0, null);
-                       tempVal.remove(0);
-                   }
-                    ArrayList<Object> tempSame = (ArrayList<Object>) listisSame.get(parm_Number);
-                   if(!tempSame.isEmpty()) {
-                       // tempSame.set(0, false);
-                       tempSame.remove(0);
-                   }
-                }
+                    if (!tempVal.isEmpty()) {
+                        // tempVal.set(0, null);
+                        tempVal.remove(0);
+                    }
+                    ArrayList<Object> tempSame = (ArrayList<Object>) listOfBooleans.get(parm_Number);
+                    if (!tempSame.isEmpty()) {
+                        // tempSame.set(0, false);
+                        tempSame.remove(0);
+                    }
+               // }
             }
 
             String tempString;
@@ -113,49 +117,80 @@ public class DiffUDAF extends DiffUDAFAbstract {
             ArrayList<Object> resList;
 
             parmIndex = parm_Number;
+
+            // Convert into "Text" data type and add to an ArrayList
             switch (inputObject.getCategory()) {
                 case PRIMITIVE:
                     if (((PrimitiveObjectInspector) inputObject).getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.INT) {
                         tempString = ((IntWritable) currValue).toString();
                         currText = new Text(tempString);
-                        currValue = currText;
+
                     } else if (((PrimitiveObjectInspector) inputObject).getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.DOUBLE) {
                         tempString = ((DoubleWritable) currValue).toString();
                         currText = new Text(tempString);
-                        currValue = currText;
+                    } else {
+                        currText=(Text) currValue;
                     }
+                    resList = new ArrayList<>();
+                    resList.add(currText);
+                    currValue = resList;
                     break;
                 case LIST:
                     if (((PrimitiveObjectInspector) ((ListObjectInspector) inputObject).getListElementObjectInspector()).getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.INT) {
                         tempString = ((IntWritable) currValue).toString();
                         currText = new Text(tempString);
-                        resList = new ArrayList<>();
-                        resList.add(currText);
-                        currValue = resList;
+
 
                     } else if (((PrimitiveObjectInspector) ((ListObjectInspector) inputObject).getListElementObjectInspector()).getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.DOUBLE) {
                         tempString = ((DoubleWritable) ((ArrayList<Object>) currValue).get(0)).toString();
                         currText = new Text(tempString);
-                        resList = new ArrayList<>();
-                        resList.add(currText);
-                        currValue = resList;
+
+                    } else {
+                        tempString = ((Text) ((ArrayList<Object>) currValue).get(0)).toString();
+                        currText = new Text(tempString);
                     }
+                    resList = new ArrayList<>();
+                    resList.add(currText);
+                    currValue = resList;
                     break;
 
             }
 
+            // add values to listofValues and listOfBooleans, which will be read in getNextResult() method.
+            try {
+                ArrayList<Object> tempVal = (ArrayList<Object>) listOfValues.get(parm_Number);
+                ArrayList<Object> tempSame = (ArrayList<Object>) listOfBooleans.get(parm_Number);
+                tempVal.add(currValue);
+                tempSame.add(isSameAsPrevious);
 
-            if (listOfValues.isEmpty() && parm_Number == 0) {
+                listOfValues.set(parm_Number, tempVal);
+                listOfBooleans.set(parm_Number, tempSame);
+            } catch(IndexOutOfBoundsException ex) {
+
+                //"listofValues" & "listisSame" element in parm_number doesn't exist, create the element
+                ArrayList<Object> tempVal = new ArrayList<>();
+                tempVal.add(currValue);
+                ArrayList<Object> tempSame = new ArrayList<>();
+                tempSame.add(isSameAsPrevious);
+
+                listOfValues.add(parm_Number, tempVal);
+                listOfBooleans.add(parm_Number, tempSame);
+
+            }
+
+            /*if (listOfValues.isEmpty() && inputObject.getCategory() == ObjectInspector.Category.LIST) {
+
                 values.add(currValue);
                 isSame.add(isSameAsPrevious);
                 listOfValues.add(parm_Number, values);
                 listisSame.add(parm_Number, isSame);
-            } else if (!listOfValues.isEmpty() && parm_Number == 0) {
+
+            } else if (!listOfValues.isEmpty() && inputObject.getCategory() == ObjectInspector.Category.LIST) {
                 values.add(currValue);
                 isSame.add(isSameAsPrevious);
-                listOfValues.set(parm_Number, values);
-                listisSame.set(parm_Number, isSame);
-            } else if (listOfValues.isEmpty() && parm_Number > 0) {
+                //   listOfValues.set(parm_Number, values);
+                //    listisSame.set(parm_Number, isSame);
+            } else if (listOfValues.isEmpty() && inputObject.getCategory() == ObjectInspector.Category.PRIMITIVE) {
                 ArrayList<Object> tempVal = new ArrayList<>();
                 tempVal.add(currValue);
                 ArrayList<Object> tempSame = new ArrayList<>();
@@ -163,7 +198,7 @@ public class DiffUDAF extends DiffUDAFAbstract {
 
                 listOfValues.add(parm_Number, tempVal);
                 listisSame.add(parm_Number, tempSame);
-            } else if (!listOfValues.isEmpty() && parm_Number > 0) {
+            } else if (!listOfValues.isEmpty() && inputObject.getCategory() == ObjectInspector.Category.PRIMITIVE) {
                 try {
                     ArrayList<Object> tempVal = (ArrayList<Object>) listOfValues.get(parm_Number);
                     tempVal.add(currValue);
@@ -182,7 +217,7 @@ public class DiffUDAF extends DiffUDAFAbstract {
                     listisSame.add(parm_Number, tempSame);
                 }
             }
-
+*/
 
         }
 
@@ -220,17 +255,17 @@ public class DiffUDAF extends DiffUDAFAbstract {
                     if (deleteOthers) {
 
                         ((ArrayList<Object>) lb.listOfValues.get(i)).remove(0);
-                        ((ArrayList<Object>) lb.listisSame.get(i)).remove(0);
+                        ((ArrayList<Object>) lb.listOfBooleans.get(i)).remove(0);
 
                     } else {
 
                         if (!lb.isFirstValue) {
-                            if (i == 0) {
+                            if (ObjOI[i].getCategory() == ObjectInspector.Category.LIST) {
                                 res = ((ArrayList<Object>) lb.listOfValues.get(i)).get(0);
                             } else {
 
 
-                                if (ObjOI[0].getCategory() == ObjectInspector.Category.LIST) {
+                                if (ObjOI[i].getCategory() == ObjectInspector.Category.LIST) {
                                     ArrayList<Object> resList = new ArrayList<>();
                                     resList.add(0, ((ArrayList<Object>) lb.listOfValues.get(i)).get(0));
                                     res = resList;
@@ -240,52 +275,53 @@ public class DiffUDAF extends DiffUDAFAbstract {
 
                             }
 
-                            resIsSame = (Boolean) ((ArrayList<Object>) lb.listisSame.get(i)).get(0);
+                            resIsSame = (Boolean) ((ArrayList<Object>) lb.listOfBooleans.get(i)).get(0);
 
-                            if ((ObjOI[0].getCategory() == ObjectInspector.Category.LIST) && (((ArrayList<Object>) res).get(0) == null)
+                            /*if ((ObjOI[0].getCategory() == ObjectInspector.Category.LIST) && (((ArrayList<Object>) res).get(0) == null)
                                     || ((ObjOI[0].getCategory() == ObjectInspector.Category.PRIMITIVE) && res == null)) {
                                 ((ArrayList<Object>) lb.listOfValues.get(i)).remove(0);
                                 ((ArrayList<Object>) lb.listisSame.get(i)).remove(0);
                                 continue;
 
-                        } else if (resIsSame && res != null) {
-                            res = null;
-                            ((ArrayList<Object>) lb.listisSame.get(i)).set(0, false);
+                        } else */
+                            if (resIsSame && res != null) {
+                                res = null;
+                                ((ArrayList<Object>) lb.listOfBooleans.get(i)).set(0, false);
+                            } else {
+                                ((ArrayList<Object>) lb.listOfValues.get(i)).remove(0);
+                                ((ArrayList<Object>) lb.listOfBooleans.get(i)).remove(0);
+                                deleteOthers = true;
+                            }
+
+
                         } else {
-                            ((ArrayList<Object>) lb.listOfValues.get(i)).remove(0);
-                            ((ArrayList<Object>) lb.listisSame.get(i)).remove(0);
-                            deleteOthers = true;
+
+                            res = ((ArrayList<Object>) lb.listOfValues.get(i)).get(0);
+
+                            break;
                         }
 
-
-                    } else{
-
-                        res = ((ArrayList<Object>) lb.listOfValues.get(i)).get(0);
-
-                        break;
                     }
-
                 }
-            }
-            lb.isFirstValue = false;
+                lb.isFirstValue = false;
 
-            if (res == null) {
-                return ISupportStreamingModeForWindowing.NULL_RESULT;
-            }
+                if (res == null) {
+                    return ISupportStreamingModeForWindowing.NULL_RESULT;
+                }
 
-            return res;
-        }
+                return res;
+            }
 
 
             return null;
-    }
+        }
 
-    @Override
-    public int getRowsRemainingAfterTerminate() throws HiveException {
+        @Override
+        public int getRowsRemainingAfterTerminate() throws HiveException {
 
-        return 0;
+            return 0;
+        }
     }
-}
 
 }
 

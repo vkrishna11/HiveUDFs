@@ -46,25 +46,25 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
                 case PRIMITIVE:
                     break;
                 case STRUCT:
-                    if (i > 0) {
+                    /*if (i > 0) {
                         throw new UDFArgumentTypeException(0,
                                 "Only primitive are accepted as parameter " + i + " but "
                                         + paramOIs[i].getTypeName() + " was passed.");
-                    }
+                    }*/
                     break;
                 case MAP:
-                    if (i > 0) {
+                    /*if (i > 0) {
                         throw new UDFArgumentTypeException(0,
                                 "Only primitive are accepted as parameter " + i + " but "
                                         + paramOIs[i].getTypeName() + " was passed.");
-                    }
+                    }*/
                     break;
                 case LIST:
-                    if (i > 0) {
+                    /*if (i > 0) {
                         throw new UDFArgumentTypeException(0,
                                 "Only primitive are accepted as parameter " + i + " but "
                                         + paramOIs[i].getTypeName() + " was passed.");
-                    }
+                    }*/
                     break;
                 default:
                     throw new UDFArgumentTypeException(0,
@@ -92,6 +92,7 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
         private transient PrimitiveObjectInspector primitiveOI;
         private transient StructObjectInspector structOI;
         private transient MapObjectInspector mapOI;
+        private transient PrimitiveObjectInspector elementOI;
         private int noOfParams;
         private ArrayList<ObjectInspector> objInspectors;  // ArrayList to hold Object Inspectors
 
@@ -159,18 +160,20 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
             // regardless of Double, Integer etc.
             // ArrayList is mandatory as PivotResult=TRUE
 
-            if (inputOI[0].getCategory() != ObjectInspector.Category.PRIMITIVE) {
+           /* if (inputOI[0].getCategory() != ObjectInspector.Category.PRIMITIVE) {
                 return ObjectInspectorFactory.getStandardListObjectInspector(ObjectInspectorUtils.
                         getStandardObjectInspector(ObjectInspectorFactory.getStandardListObjectInspector(PrimitiveObjectInspectorFactory.writableStringObjectInspector)));
             } else {
+
                 // and "ArrayList<ArrayList<String>>" for LIST input parameter (first argument)...
                 // regardless of ArrayList<Double>, ArrayList<Integer> etc...
                 // Outer ArrayList is mandatory as PivotResult=TRUE
 
                 return ObjectInspectorFactory.getStandardListObjectInspector(ObjectInspectorUtils.
                         getStandardObjectInspector(PrimitiveObjectInspectorFactory.writableStringObjectInspector));
-            }
-
+            }*/
+            return ObjectInspectorFactory.getStandardListObjectInspector(ObjectInspectorUtils.
+                    getStandardObjectInspector(ObjectInspectorFactory.getStandardListObjectInspector(PrimitiveObjectInspectorFactory.writableStringObjectInspector)));
 
             // Set the output result data type same as the first input parameter
            /* return ObjectInspectorFactory.getStandardListObjectInspector(ObjectInspectorUtils
@@ -271,8 +274,8 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
                         break;
                     case LIST:
 
-
-                        PrimitiveObjectInspector elementOI = (PrimitiveObjectInspector) listOI.getListElementObjectInspector();
+                        elementOI  =(PrimitiveObjectInspector) (((ListObjectInspector) objInspectors.get(i)).getListElementObjectInspector());
+                     //   PrimitiveObjectInspector elementOI = (PrimitiveObjectInspector) listOI.getListElementObjectInspector();
                         // For String...
                         if (elementOI.getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.STRING) {
                             // retrieve current row
@@ -282,7 +285,7 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
 
                                 List<Text> previousList = (List<Text>) listOI.getList(previousObj.get(i));
                                 for (Text s : currentList) {
-                                    if (!s.toString().equals((previousList.get(i)).toString())) {
+                                    if (!s.toString().equals((previousList.get(0)).toString())) {
                                         isSame = false;
                                         break;
                                     }
@@ -299,7 +302,7 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
 
                                 List<IntWritable> previousList = (List<IntWritable>) listOI.getList(previousObj.get(i));
                                 for (IntWritable s : currentList) {
-                                    if (!s.equals((previousList.get(i)))) {
+                                    if (!s.equals((previousList.get(0)))) {
                                         isSame = false;
                                         break;
                                     }
@@ -316,7 +319,7 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
 
                                 List<DoubleWritable> previousList = (List<DoubleWritable>) listOI.getList(previousObj.get(i));
                                 for (DoubleWritable s : currentList) {
-                                    if (!s.equals((previousList.get(i)))) {
+                                    if (!s.equals((previousList.get(0)))) {
                                         isSame = false;
                                         break;
                                     }
