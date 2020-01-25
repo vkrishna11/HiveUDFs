@@ -94,22 +94,14 @@ public class DiffUDAF extends DiffUDAFAbstract {
             // in the subsequent lines, the current element with "isSame" set to TRUE will be added to ArrayList
 
             if (isSameAsPrevious) {
-                /*if (inputObject.getCategory() == ObjectInspector.Category.LIST) {
-                    values.remove(parm_Number);
-                    isSame.remove(parm_Number);
-                } else {*/
-
-                    ArrayList<Object> tempVal = (ArrayList<Object>) listOfValues.get(parm_Number);
-                    if (!tempVal.isEmpty()) {
-                        // tempVal.set(0, null);
-                        tempVal.remove(0);
-                    }
-                    ArrayList<Object> tempSame = (ArrayList<Object>) listOfBooleans.get(parm_Number);
-                    if (!tempSame.isEmpty()) {
-                        // tempSame.set(0, false);
-                        tempSame.remove(0);
-                    }
-               // }
+                ArrayList<Object> tempVal = (ArrayList<Object>) listOfValues.get(parm_Number);
+                if (!tempVal.isEmpty()) {
+                    tempVal.remove(0);
+                }
+                ArrayList<Object> tempSame = (ArrayList<Object>) listOfBooleans.get(parm_Number);
+                if (!tempSame.isEmpty()) {
+                    tempSame.remove(0);
+                }
             }
 
             String tempString;
@@ -118,7 +110,7 @@ public class DiffUDAF extends DiffUDAFAbstract {
 
             parmIndex = parm_Number;
 
-            // Convert into "Text" data type and add to an ArrayList
+            // Convert all into "Text" data type and add to an ArrayList
             switch (inputObject.getCategory()) {
                 case PRIMITIVE:
                     if (((PrimitiveObjectInspector) inputObject).getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.INT) {
@@ -129,7 +121,7 @@ public class DiffUDAF extends DiffUDAFAbstract {
                         tempString = ((DoubleWritable) currValue).toString();
                         currText = new Text(tempString);
                     } else {
-                        currText=(Text) currValue;
+                        currText = (Text) currValue;
                     }
                     resList = new ArrayList<>();
                     resList.add(currText);
@@ -165,7 +157,7 @@ public class DiffUDAF extends DiffUDAFAbstract {
 
                 listOfValues.set(parm_Number, tempVal);
                 listOfBooleans.set(parm_Number, tempSame);
-            } catch(IndexOutOfBoundsException ex) {
+            } catch (IndexOutOfBoundsException ex) {
 
                 //"listofValues" & "listisSame" element in parm_number doesn't exist, create the element
                 ArrayList<Object> tempVal = new ArrayList<>();
@@ -177,53 +169,10 @@ public class DiffUDAF extends DiffUDAFAbstract {
                 listOfBooleans.add(parm_Number, tempSame);
 
             }
-
-            /*if (listOfValues.isEmpty() && inputObject.getCategory() == ObjectInspector.Category.LIST) {
-
-                values.add(currValue);
-                isSame.add(isSameAsPrevious);
-                listOfValues.add(parm_Number, values);
-                listisSame.add(parm_Number, isSame);
-
-            } else if (!listOfValues.isEmpty() && inputObject.getCategory() == ObjectInspector.Category.LIST) {
-                values.add(currValue);
-                isSame.add(isSameAsPrevious);
-                //   listOfValues.set(parm_Number, values);
-                //    listisSame.set(parm_Number, isSame);
-            } else if (listOfValues.isEmpty() && inputObject.getCategory() == ObjectInspector.Category.PRIMITIVE) {
-                ArrayList<Object> tempVal = new ArrayList<>();
-                tempVal.add(currValue);
-                ArrayList<Object> tempSame = new ArrayList<>();
-                tempSame.add(isSameAsPrevious);
-
-                listOfValues.add(parm_Number, tempVal);
-                listisSame.add(parm_Number, tempSame);
-            } else if (!listOfValues.isEmpty() && inputObject.getCategory() == ObjectInspector.Category.PRIMITIVE) {
-                try {
-                    ArrayList<Object> tempVal = (ArrayList<Object>) listOfValues.get(parm_Number);
-                    tempVal.add(currValue);
-                    ArrayList<Object> tempSame = (ArrayList<Object>) listisSame.get(parm_Number);
-                    tempSame.add(isSameAsPrevious);
-
-                    listOfValues.set(parm_Number, tempVal);
-                    listisSame.set(parm_Number, tempSame);
-                } catch (IndexOutOfBoundsException ex) {
-                    ArrayList<Object> tempVal = new ArrayList<>();
-                    tempVal.add(currValue);
-                    ArrayList<Object> tempSame = new ArrayList<>();
-                    tempSame.add(isSameAsPrevious);
-
-                    listOfValues.add(parm_Number, tempVal);
-                    listisSame.add(parm_Number, tempSame);
-                }
-            }
-*/
-
         }
 
         public Object terminate() {
-
-
+            // this is just a dummy
             return values;
         }
     }
@@ -277,13 +226,6 @@ public class DiffUDAF extends DiffUDAFAbstract {
 
                             resIsSame = (Boolean) ((ArrayList<Object>) lb.listOfBooleans.get(i)).get(0);
 
-                            /*if ((ObjOI[0].getCategory() == ObjectInspector.Category.LIST) && (((ArrayList<Object>) res).get(0) == null)
-                                    || ((ObjOI[0].getCategory() == ObjectInspector.Category.PRIMITIVE) && res == null)) {
-                                ((ArrayList<Object>) lb.listOfValues.get(i)).remove(0);
-                                ((ArrayList<Object>) lb.listisSame.get(i)).remove(0);
-                                continue;
-
-                        } else */
                             if (resIsSame && res != null) {
                                 res = null;
                                 ((ArrayList<Object>) lb.listOfBooleans.get(i)).set(0, false);
