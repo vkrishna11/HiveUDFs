@@ -38,33 +38,19 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
 
 
         // Validate input parameter data types...
-        // First argument to the function could be a collection data type, however,
-        // subsequent data types must be primitive only...
 
         for (int i = 0; i < paramOIs.length; i++) {
             switch (paramOIs[i].getCategory()) {
                 case PRIMITIVE:
                     break;
                 case STRUCT:
-                    /*if (i > 0) {
-                        throw new UDFArgumentTypeException(0,
-                                "Only primitive are accepted as parameter " + i + " but "
-                                        + paramOIs[i].getTypeName() + " was passed.");
-                    }*/
+
                     break;
                 case MAP:
-                    /*if (i > 0) {
-                        throw new UDFArgumentTypeException(0,
-                                "Only primitive are accepted as parameter " + i + " but "
-                                        + paramOIs[i].getTypeName() + " was passed.");
-                    }*/
+
                     break;
                 case LIST:
-                    /*if (i > 0) {
-                        throw new UDFArgumentTypeException(0,
-                                "Only primitive are accepted as parameter " + i + " but "
-                                        + paramOIs[i].getTypeName() + " was passed.");
-                    }*/
+
                     break;
                 default:
                     throw new UDFArgumentTypeException(0,
@@ -175,9 +161,6 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
             return ObjectInspectorFactory.getStandardListObjectInspector(ObjectInspectorUtils.
                     getStandardObjectInspector(ObjectInspectorFactory.getStandardListObjectInspector(PrimitiveObjectInspectorFactory.writableStringObjectInspector)));
 
-            // Set the output result data type same as the first input parameter
-           /* return ObjectInspectorFactory.getStandardListObjectInspector(ObjectInspectorUtils
-                    .getStandardObjectInspector(parameters[0]));*/
         }
 
 
@@ -274,8 +257,8 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
                         break;
                     case LIST:
 
-                        elementOI  =(PrimitiveObjectInspector) (((ListObjectInspector) objInspectors.get(i)).getListElementObjectInspector());
-                     //   PrimitiveObjectInspector elementOI = (PrimitiveObjectInspector) listOI.getListElementObjectInspector();
+                        elementOI = (PrimitiveObjectInspector) (((ListObjectInspector) objInspectors.get(i)).getListElementObjectInspector());
+                        //   PrimitiveObjectInspector elementOI = (PrimitiveObjectInspector) listOI.getListElementObjectInspector();
                         // For String...
                         if (elementOI.getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.STRING) {
                             // retrieve current row
@@ -330,7 +313,6 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
                         }
                         break;
                 }
-
 
 
                 if (!previousObj.isEmpty() && previousObj.size() > i) {
