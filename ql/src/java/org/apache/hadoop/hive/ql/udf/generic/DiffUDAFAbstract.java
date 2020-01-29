@@ -8,12 +8,8 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.parse.SemanticException;
 import org.apache.hadoop.hive.serde2.objectinspector.*;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
-import org.apache.hadoop.io.DoubleWritable;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.Text;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * abstract class for diff UDAF.
@@ -212,39 +208,33 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
                     case PRIMITIVE:
                         // For String...
                         if (((PrimitiveObjectInspector) objInspectors.get(i)).getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.STRING) {
-                            // retrieve current row as a String
-                            String currentStr = (String) ((PrimitiveObjectInspector) objInspectors.get(i)).getPrimitiveJavaObject(rowExprVal);
-                            // If previous row exists, then compare with current row
-                            if (!previousObj.isEmpty() && previousObj.size() > i) {
 
-                                String previousStr = (String) ((PrimitiveObjectInspector) objInspectors.get(i)).getPrimitiveJavaObject(previousObj.get(i));
-                                if (!currentStr.equals(previousStr)) {
+                            // compare current object to previous object
+                            if (!previousObj.isEmpty() && previousObj.size() > i) {
+                                if (ObjectInspectorUtils.compare(rowExprVal, inputOI[i], previousObj.get(i), inputOI[i]) != 0) {
                                     isSame = false;
                                 }
+
                             }
                             // For Integer...
                         } else if (((PrimitiveObjectInspector) objInspectors.get(i)).getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.INT) {
-                            // retrieve current row as a Integer
-                            Integer currentInt = (Integer) ((PrimitiveObjectInspector) objInspectors.get(i)).getPrimitiveJavaObject(rowExprVal);
 
+                            // compare current object to previous object
                             if (!previousObj.isEmpty() && previousObj.size() > i) {
-                                // retrieve previous row as a Integer
-                                Integer previousInt = (Integer) ((PrimitiveObjectInspector) objInspectors.get(i)).getPrimitiveJavaObject(previousObj.get(i));
-                                // compare current & previous row...
-                                if (!currentInt.equals(previousInt)) {
+                                if (ObjectInspectorUtils.compare(rowExprVal, inputOI[i], previousObj.get(i), inputOI[i]) != 0) {
                                     isSame = false;
                                 }
+
                             }
                             // For Double
                         } else if (((PrimitiveObjectInspector) objInspectors.get(i)).getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.DOUBLE) {
-                            // retrieve current row as a Double
-                            Double currentDouble = (Double) ((PrimitiveObjectInspector) objInspectors.get(i)).getPrimitiveJavaObject(rowExprVal);
+                            // compare current object to previous object
                             if (!previousObj.isEmpty() && previousObj.size() > i) {
-                                Double previousDouble = (Double) ((PrimitiveObjectInspector) objInspectors.get(i)).getPrimitiveJavaObject(previousObj.get(i));
-                                // compare current & previous row...
-                                if (!currentDouble.equals(previousDouble)) {
+
+                                if (ObjectInspectorUtils.compare(rowExprVal, inputOI[i], previousObj.get(i), inputOI[i]) != 0) {
                                     isSame = false;
                                 }
+
                             }
                         }
 
@@ -258,57 +248,38 @@ public abstract class DiffUDAFAbstract extends AbstractGenericUDAFResolver {
                     case LIST:
 
                         elementOI = (PrimitiveObjectInspector) (((ListObjectInspector) objInspectors.get(i)).getListElementObjectInspector());
-                        //   PrimitiveObjectInspector elementOI = (PrimitiveObjectInspector) listOI.getListElementObjectInspector();
+
                         // For String...
                         if (elementOI.getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.STRING) {
-                            // retrieve current row
-                            List<Text> currentList = (List<Text>) listOI.getList(rowExprVal);
-                            // retrieve previous row and compare with current row
+
+                            // compare current object to previous object
                             if (!previousObj.isEmpty() && previousObj.size() > i) {
-
-                                List<Text> previousList = (List<Text>) listOI.getList(previousObj.get(i));
-                                for (Text s : currentList) {
-                                    if (!s.toString().equals((previousList.get(0)).toString())) {
-                                        isSame = false;
-                                        break;
-                                    }
-
-
+                                if (ObjectInspectorUtils.compare(rowExprVal, inputOI[i], previousObj.get(i), inputOI[i]) != 0) {
+                                    isSame = false;
                                 }
+
                             }
                         }
                         // For Integer...
                         else if (elementOI.getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.INT) {
-                            List<IntWritable> currentList = (List<IntWritable>) listOI.getList(rowExprVal);
 
+                            // compare current object to previous object
                             if (!previousObj.isEmpty() && previousObj.size() > i) {
-
-                                List<IntWritable> previousList = (List<IntWritable>) listOI.getList(previousObj.get(i));
-                                for (IntWritable s : currentList) {
-                                    if (!s.equals((previousList.get(0)))) {
-                                        isSame = false;
-                                        break;
-                                    }
-
-
+                                if (ObjectInspectorUtils.compare(rowExprVal, inputOI[i], previousObj.get(i), inputOI[i]) != 0) {
+                                    isSame = false;
                                 }
+
                             }
                         }
                         // For Double
                         else if (elementOI.getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.DOUBLE) {
-                            List<DoubleWritable> currentList = (List<DoubleWritable>) listOI.getList(rowExprVal);
 
+                            // compare current object to previous object
                             if (!previousObj.isEmpty() && previousObj.size() > i) {
-
-                                List<DoubleWritable> previousList = (List<DoubleWritable>) listOI.getList(previousObj.get(i));
-                                for (DoubleWritable s : currentList) {
-                                    if (!s.equals((previousList.get(0)))) {
-                                        isSame = false;
-                                        break;
-                                    }
-
-
+                                if (ObjectInspectorUtils.compare(rowExprVal, inputOI[i], previousObj.get(i), inputOI[i]) != 0) {
+                                    isSame = false;
                                 }
+
                             }
                         }
                         break;
