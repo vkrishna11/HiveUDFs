@@ -153,7 +153,7 @@
     <jodd.version>3.5.2</jodd.version>
     <json.version>20090211</json.version>
     <jsp.api.version>2.1</jsp.api.version>
-    <junit.version>4.11</junit.version>
+    <junit.version>4.13.1</junit.version>
     <kryo.version>2.22</kryo.version>
     <libfb303.version>${cdh.thrift.version}</libfb303.version>
     <libthrift.version>${cdh.thrift.version}</libthrift.version>
